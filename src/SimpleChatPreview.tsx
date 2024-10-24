@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useContext, useMemo, ReactNode } from 'react';
 import { useQuery, gql } from '@apollo/client';
 
 // GraphQL query
@@ -15,11 +15,27 @@ const GET_LAUNCHES = gql`
   }
 `;
 
+// Types
+interface Launch {
+  id: string;
+  mission_name: string;
+  launch_date_local: string;
+  links: {
+    mission_patch_small: string;
+  };
+}
+
+interface LaunchesContextType {
+  launches: Launch[];
+  loading: boolean;
+  error?: Error;
+}
+
 // Context
-const LaunchesContext = createContext();
+const LaunchesContext = createContext<LaunchesContextType | undefined>(undefined);
 
 // Custom hook
-const useLaunches = () => {
+const useLaunches = (): LaunchesContextType => {
   const context = useContext(LaunchesContext);
   if (!context) {
     throw new Error('useLaunches must be used within a LaunchesProvider');
@@ -28,7 +44,11 @@ const useLaunches = () => {
 };
 
 // Provider component
-const LaunchesProvider = ({ children }) => {
+interface LaunchesProviderProps {
+  children: ReactNode;
+}
+
+const LaunchesProvider: React.FC<LaunchesProviderProps> = ({ children }) => {
   const { loading, error, data } = useQuery(GET_LAUNCHES);
   const launches = useMemo(() => (data ? data.launchesPast : []), [data]);
 
@@ -42,7 +62,12 @@ const LaunchesProvider = ({ children }) => {
 };
 
 // LaunchCard component
-const LaunchCard = ({ launch, isSelected }) => (
+interface LaunchCardProps {
+  launch: Launch;
+  isSelected: boolean;
+}
+
+const LaunchCard: React.FC<LaunchCardProps> = ({ launch, isSelected }) => (
   <div style={{ 
     padding: '10px', 
     border: '1px solid #ccc', 
@@ -56,7 +81,12 @@ const LaunchCard = ({ launch, isSelected }) => (
 );
 
 // Main component
-const LaunchList = ({ open, title }) => {
+interface LaunchListProps {
+  open: boolean;
+  title: string;
+}
+
+const LaunchList: React.FC<LaunchListProps> = ({ open, title }) => {
   const { launches, loading, error } = useLaunches();
 
   if (!open) return null;
@@ -81,7 +111,7 @@ const LaunchList = ({ open, title }) => {
 };
 
 // App component
-const App = () => (
+const App: React.FC = () => (
   <LaunchesProvider>
     <LaunchList open={true} title="SpaceX Launches" />
   </LaunchesProvider>
