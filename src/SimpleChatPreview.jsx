@@ -20,25 +20,28 @@ const PreviewMessagesProvider = ({ children }) => {
   // Simulating API call to get channels
   useEffect(() => {
     const fetchChannels = async () => {
-      // Simulated API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockData = [
-        { recipient: { id: 1, full_name: 'John Doe', profilePicture: 'john.jpg' }, channelName: 'channel1' },
-        { recipient: { id: 2, full_name: 'Jane Smith', profilePicture: 'jane.jpg' }, channelName: 'channel2' },
-      ];
-      
-      const sessions = mockData.map(channel => ({
-        user: {
-          id: channel.recipient.id.toString(),
-          name: channel.recipient.full_name,
-          imgSrc: channel.recipient.profilePicture,
-          channel: channel.channelName,
-        },
-      }));
-      
-      setChatSessions(sessions);
-      setIsLoading(false);
+      try {
+        const response = await fetch('https://api.example.com/channels'); // Replace with your API endpoint
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        
+        const sessions = data.map(channel => ({
+          user: {
+            id: channel.recipient.id.toString(),
+            name: channel.recipient.full_name,
+            imgSrc: channel.recipient.profilePicture,
+            channel: channel.channelName,
+          },
+        }));
+        
+        setChatSessions(sessions);
+      } catch (error) {
+        console.error('Failed to fetch channels:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchChannels();
