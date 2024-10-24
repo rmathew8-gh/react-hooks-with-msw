@@ -1,14 +1,30 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
+import ReactDOM from 'react-dom';
+import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 import App from './SimpleChatPreview';
-import { worker } from './mocks/browser';
 
-// Start the mock service worker
-worker.start().then(() => {
-  const root = ReactDOM.createRoot(document.getElementById('root'));
-  root.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
-  );
+const client = new ApolloClient({
+  uri: 'https://api.spacex.land/graphql/',
+  cache: new InMemoryCache()
 });
+
+const renderApp = () => {
+  ReactDOM.render(
+    <React.StrictMode>
+      <ApolloProvider client={client}>
+        <App />
+      </ApolloProvider>
+    </React.StrictMode>,
+    document.getElementById('root')
+  );
+};
+
+if (process.env.NODE_ENV !== 'production') {
+  import('./mocks/browser').then(({ worker }) => {
+    worker.start({ onUnhandledRequest: 'bypass' }).then(() => {
+      renderApp();
+    });
+  });
+} else {
+  renderApp();
+}

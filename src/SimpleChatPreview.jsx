@@ -1,94 +1,78 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
+import { useQuery, gql } from '@apollo/client';
+
+// GraphQL query
+const GET_LAUNCHES = gql`
+  query GetLaunches {
+    launchesPast(limit: 5) {
+      id
+      mission_name
+      launch_date_local
+      links {
+        mission_patch_small
+      }
+    }
+  }
+`;
 
 // Context
-const PreviewMessagesContext = createContext();
+const LaunchesContext = createContext();
 
 // Custom hook
-const usePreviewMessages = () => {
-  const context = useContext(PreviewMessagesContext);
+const useLaunches = () => {
+  const context = useContext(LaunchesContext);
   if (!context) {
-    throw new Error('usePreviewMessages must be used within a PreviewMessagesProvider');
+    throw new Error('useLaunches must be used within a LaunchesProvider');
   }
   return context;
 };
 
 // Provider component
-const PreviewMessagesProvider = ({ children }) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [chatSessions, setChatSessions] = useState([]);
+const LaunchesProvider = ({ children }) => {
+  const { loading, error, data } = useQuery(GET_LAUNCHES);
+  const launches = useMemo(() => (data ? data.launchesPast : []), [data]);
 
-  // Simulating API call to get channels
-  useEffect(() => {
-    const fetchChannels = async () => {
-      try {
-        console.log('Fetching channels...');
-        const response = await fetch('https://api.example.com/channels');
-        console.log('Response received:', response);
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        
-        const sessions = data.map(channel => ({
-          user: {
-            id: channel.recipient.id.toString(),
-            name: channel.recipient.full_name,
-            imgSrc: channel.recipient.profilePicture,
-            channel: channel.channelName,
-          },
-        }));
-        
-        setChatSessions(sessions);
-      } catch (error) {
-        console.error('Failed to fetch channels:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchChannels();
-  }, []);
-
-  const value = useMemo(() => ({ chatSessions, isLoading }), [chatSessions, isLoading]);
+  const value = useMemo(() => ({ launches, loading, error }), [launches, loading, error]);
 
   return (
-    <PreviewMessagesContext.Provider value={value}>
+    <LaunchesContext.Provider value={value}>
       {children}
-    </PreviewMessagesContext.Provider>
+    </LaunchesContext.Provider>
   );
 };
 
-// PreviewMessageCard component
-const PreviewMessageCard = ({ user, isSelected }) => (
+// LaunchCard component
+const LaunchCard = ({ launch, isSelected }) => (
   <div style={{ 
     padding: '10px', 
     border: '1px solid #ccc', 
     margin: '5px', 
     backgroundColor: isSelected ? '#e6e6e6' : 'white' 
   }}>
-    <img src={user.imgSrc} alt={user.name} style={{ width: 50, height: 50, borderRadius: '50%' }} />
-    <h3>{user.name}</h3>
-    <p>Channel: {user.channel}</p>
+    <img src={launch.links.mission_patch_small} alt={launch.mission_name} style={{ width: 50, height: 50 }} />
+    <h3>{launch.mission_name}</h3>
+    <p>Launch Date: {new Date(launch.launch_date_local).toLocaleDateString()}</p>
   </div>
 );
 
 // Main component
-const PreviewMessages = ({ open, title }) => {
-  const { chatSessions, isLoading } = usePreviewMessages();
+const LaunchList = ({ open, title }) => {
+  const { launches, loading, error } = useLaunches();
 
   if (!open) return null;
+  if (error) return <p>Error: {error.message}</p>;
 
   return (
     <div>
       <h2>{title}</h2>
-      {isLoading ? (
+      {loading ? (
         <p>Loading...</p>
       ) : (
-        chatSessions.map((session, index) => (
-          <PreviewMessageCard 
-            key={session.user.id} 
+        launches.map((launch, index) => (
+          <LaunchCard 
+            key={launch.id} 
             isSelected={index === 0} 
-            {...session} 
+            launch={launch} 
           />
         ))
       )}
@@ -98,9 +82,9 @@ const PreviewMessages = ({ open, title }) => {
 
 // App component
 const App = () => (
-  <PreviewMessagesProvider>
-    <PreviewMessages open={true} title="Chat Preview" />
-  </PreviewMessagesProvider>
+  <LaunchesProvider>
+    <LaunchList open={true} title="SpaceX Launches" />
+  </LaunchesProvider>
 );
 
 export default App;
