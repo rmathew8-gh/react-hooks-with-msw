@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 import App from './SimpleChatPreview';
 
@@ -8,14 +8,15 @@ const client = new ApolloClient({
   cache: new InMemoryCache()
 });
 
+const root = createRoot(document.getElementById('root'));
+
 const renderApp = () => {
-  ReactDOM.render(
+  root.render(
     <React.StrictMode>
       <ApolloProvider client={client}>
         <App />
       </ApolloProvider>
-    </React.StrictMode>,
-    document.getElementById('root')
+    </React.StrictMode>
   );
 };
 
