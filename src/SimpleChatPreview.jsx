@@ -21,7 +21,9 @@ const PreviewMessagesProvider = ({ children }) => {
   useEffect(() => {
     const fetchChannels = async () => {
       try {
-        const response = await fetch('https://api.example.com/channels'); // Replace with your API endpoint
+        console.log('Fetching channels...');
+        const response = await fetch('https://api.example.com/channels');
+        console.log('Response received:', response);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
