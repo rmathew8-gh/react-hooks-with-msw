@@ -9,7 +9,7 @@ export const handlers = [
           recipient: {
             id: 1,
             full_name: 'John Doe',
-            profilePicture: 'https://via.placeholder.com/50',
+            profilePicture: 'https://www.gravatar.com/avatar/2c7d99fe281ecd3bcd65ab915bac6dd5?s=250',
           },
           channelName: 'General',
         },
@@ -17,7 +17,7 @@ export const handlers = [
           recipient: {
             id: 2,
             full_name: 'Jane Smith',
-            profilePicture: 'https://via.placeholder.com/50',
+            profilePicture: 'https://www.gravatar.com/avatar/',
           },
           channelName: 'Random',
         },
